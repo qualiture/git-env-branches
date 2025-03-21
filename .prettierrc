@@ -1,0 +1,33 @@
+{
+    "plugins": ["@prettier/plugin-xml", "prettier-plugin-organize-imports"],
+    "arrowParens": "always",
+    "bracketSpacing": true,
+    "semi": true,
+    "singleQuote": true,
+    "tabWidth": 4,
+    "trailingComma": "none",
+    "useTabs": false,
+    "requirePragma": false,
+    "insertPragma": false,
+    "printWidth": 180,
+    "proseWrap": "preserve",
+    "quoteProps": "as-needed",
+    "endOfLine": "lf",
+    "htmlWhitespaceSensitivity": "css",
+    "overrides": [
+        {
+            "files": ["**/*.xml"],
+            "options": {
+                "parser": "xml",
+                "plugins": ["@prettier/plugin-xml"],
+                "singleAttributePerLine": true
+            }
+        },
+        {
+            "files": ["**/*.conf.js"],
+            "options": {
+                "printWidth": 80
+            }
+        }
+    ]
+}
