@@ -31,7 +31,7 @@ This NPM package is aimed at development teams who employ the so-called [environ
 
 The basics of this strategy is that each target environment (DEV, ACC and PROD) have its own branch, and features/bugfixes/etc are merged independently from each other into these "environment branches", from which they will be deployed to their respective environments:
 
-![Merging into environment branches](https://miro.medium.com/v2/resize:fit:720/format:webp/1*nAqh-tZAfiSt8AHq5tbY2g.png)
+![Merging into environment branches](env-branching.png)
 
 When you have a small team and few longer-than-a-day running feature branches, it is somewhat manageable to have an understanding of what features have been merged to which environment. However, when the team is larger and is working on multiple feature branches and bugfixes simultaneously, it becomes virtually impossible to keep track of what has already been released to production, what could be released to production, and what is still in development. Especially during holidays or leaves the risk is high that certain features never make it to production as well...
 
