@@ -1,13 +1,13 @@
-# git-env-branches 
-
-An NPM command-line interface for tracking merges of your Git environment and feature branches.
-
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
+
+# git-env-branches 
+
+An NPM command-line interface for tracking merges of your Git environment and feature branches.
 
 <!-- TABLE OF CONTENTS -->
 ## Table of Contents
