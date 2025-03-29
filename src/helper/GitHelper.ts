@@ -7,10 +7,25 @@ export default class GitHelper {
   
     protected git: SimpleGit = simpleGit();
 
+    /**
+     * Checks if the current working directory is a valid Git repository.
+     *
+     * @returns {Promise<boolean>} Resolves to `true` if the current working directory is a valid Git repository; otherwise, `false`.
+     */
     public async isValidRepository() : Promise<boolean> {
         return await this.git.checkIsRepo().catch(this.handleGitError) || false;
     }
 
+    /**
+     * Retrieves a list of valid remote environment branches from the provided branch names.
+     *
+     * This method checks if each branch name in the input array exists as a remote branch
+     * in the repository. If a branch is not valid, it logs a warning message and excludes
+     * it from the result. Valid branches are returned in an array.
+     *
+     * @param branches - An array of branch names to validate against the remote repository.
+     * @returns A promise that resolves to an array of valid remote branch names.
+     */
     public async getRemoteEnvironmentBranches(branches: string[]) : Promise<string[]> {
         const environmentBranches: string[] = [];
 
@@ -28,10 +43,13 @@ export default class GitHelper {
     }
 
     /**
-     * Retrieve both remote and local branch data
-     * 
-     * @param environmentBranches All specified environment branches
-     * @returns 
+     * Retrieves a summary of the specified environment branches.
+     *
+     * This method generates a summary of the specified environment branches, including details
+     * such as the last commit date, committer, and whether the branch is fully merged or not.
+     *
+     * @param environmentBranches - An array of valid environment branch names.
+     * @returns A promise that resolves to an array of `FeatureBranchSummary` objects.
      */
     public async getBranchSummaryResult(environmentBranches: string[]) : Promise<FeatureBranchSummary[]> {
         this.performHousekeeping();
@@ -44,21 +62,47 @@ export default class GitHelper {
         return [...remoteBranchesSummary, ...localBranchesSummary];
     }
 
+    /**
+     * Performs housekeeping tasks for the Git repository.
+     * 
+     * This method executes two main operations:
+     * 1. Cleans the working directory by removing untracked files and directories.
+     *    The operation is forced to ensure all untracked content is removed.
+     * 2. Fetches updates from the remote repository while pruning any stale
+     *    remote-tracking branches.
+     * 
+     * These operations help maintain a clean and up-to-date local repository state.
+     */
     private performHousekeeping() {
         this.git.clean(CleanOptions.FORCE);
         this.git.fetch(['--prune']);
     }
 
+    /**
+     * Retrieves all remote branches from the Git repository, sorted by the most recent commit date.
+     *
+     * @returns A promise that resolves to an object containing information about the remote branches.
+     */
     private getAllRemoteBranches() {
         return this.git.branch({ "-r": null, "--sort": "-committerdate" });
     }
 
     /**
-     * Retrieve remote branch data
-     * 
-     * @param environmentBranches 
-     * @param remoteBranches 
-     * @returns 
+     * Retrieves a summary of remote branches and their relationship to specified environment branches.
+     *
+     * @param environmentBranches - An array of environment branch names to compare against.
+     * @param remoteBranches - A `BranchSummary` object containing details of remote branches.
+     * @returns A promise that resolves to an array of `FeatureBranchSummary` objects, 
+     *          each representing a branch and its associated metadata.
+     *
+     * The returned summary includes:
+     * - Commit information (date and committer).
+     * - Flags indicating whether the branch is fully merged, never merged, or an environment branch.
+     * - Files touched in the branch.
+     * - Whether the branch is the current branch.
+     * - Additional metadata such as merge status and potential conflicts.
+     *
+     * @throws Will throw an error if any of the asynchronous operations (e.g., fetching branch data, commit info, or files touched) fail.
      */
     private async getBranchSummaryRemoteBranches(environmentBranches: string[], remoteBranches: BranchSummary) {
         let currentBranch = (await this.git.branchLocal()).current;
@@ -114,11 +158,16 @@ export default class GitHelper {
     }
 
     /**
-     * Retrieve local branch data
+     * Retrieves a summary of local branches that are not present in the remote repository.
      * 
-     * @param environmentBranches
-     * @param remoteBranches 
-     * @returns 
+     * This method identifies orphaned local branches by comparing the local branches
+     * with the remote branches. It then generates a summary for each orphaned branch,
+     * including details such as files touched, branch metadata, and environment branch status.
+     * 
+     * @param environmentBranches - An array of environment branch names to compare against.
+     * @param remoteBranches - A summary of remote branches retrieved from the Git repository.
+     * @returns A promise that resolves to an array of `FeatureBranchSummary` objects, each
+     *          representing an orphaned local branch with its associated metadata.
      */
     private async getBranchSummaryLocalBranches(environmentBranches: string[], remoteBranches: BranchSummary) : Promise<FeatureBranchSummary[]> {
         const localBranches = await this.git.branchLocal();
@@ -168,6 +217,12 @@ export default class GitHelper {
         return branchSummaryResult;
     }
 
+    /**
+     * Retrieves data about the target branch, including its merged and unmerged remote branches.
+     *
+     * @param branchName - The name of the branch for which to retrieve data.
+     * @returns A promise that resolves to an object containing the merged and unmerged remote branches.
+     */
     private async getTargetBranchData(branchName: string) : Promise<EnvironmentBranchData> {
         const merged = await this.getMergedRemoteBranches(branchName);
         const unmerged = await this.getUnMergedRemoteBranches(branchName);
@@ -181,10 +236,10 @@ export default class GitHelper {
     }
     
     /**
-     * Retrieves all merged branches for the specified einvironmnet branch
-     * 
-     * @param remoteBranch 
-     * @returns 
+     * Retrieves a list of remote branches that have been merged into the specified remote branch.
+     *
+     * @param remoteBranch - The name of the remote branch to check for merged branches.
+     * @returns A promise that resolves to an array of strings, where each string represents the name of a merged remote branch.
      */
     private async getMergedRemoteBranches(remoteBranch: string): Promise<string[]> {
         const branchSummary = await this.git.branch({ "-r": null, "--merged": `${Constants.ORIGIN}${remoteBranch}`});
@@ -194,10 +249,10 @@ export default class GitHelper {
     }
 
     /**
-     * Retrieves all unmerged branches for the specified environment branch
-     * 
-     * @param remoteBranch 
-     * @returns 
+     * Retrieves a list of remote branches that have not been merged into the specified remote branch.
+     *
+     * @param remoteBranch - The name of the remote branch to check for unmerged branches.
+     * @returns A promise that resolves to an array of branch names that are not merged into the specified remote branch.
      */
     private async getUnMergedRemoteBranches(remoteBranch: string): Promise<string[]> {
         const branchSummary = await this.git.branch({ "-r": null, "--no-merged": `${Constants.ORIGIN}${remoteBranch}`});
@@ -207,10 +262,12 @@ export default class GitHelper {
     }
 
     /**
-     * Retrieves the last commit date and committer
-     * 
-     * @param commit hash of the commit
-     * @returns 
+     * Retrieves information about the last commit for a given commit hash.
+     *
+     * @param commit - The hash of the commit to retrieve information for.
+     * @returns A promise that resolves to an object containing the commit date and committer name.
+     *          - `commitDate`: The date of the commit in `YYYY-MM-DD` format.
+     *          - `committer`: The name of the committer, with any line breaks removed.
      */
     private async getLastCommitInfo(commit: string) : Promise<{ commitDate: string, committer: string }> {
         const data = await this.git.show(["--no-patch", "--format=%ci,%cn", commit]);
@@ -223,6 +280,13 @@ export default class GitHelper {
         };
     }
 
+    /**
+     * Retrieves a list of file paths that have been modified in the specified Git branch.
+     *
+     * @param branch - The name of the branch to analyze for file changes.
+     * @returns A promise that resolves to an array of file paths representing the files
+     *          that have been touched (added, modified, or deleted) in the given branch.
+     */
     private async getFilesTouchedInBranch(branch: string) : Promise<string[]> {
         const diffSummary = await this.git.diffSummary(["--name-only", `${branch}`]);
         const files = diffSummary.files.map(file => file.file);
@@ -230,6 +294,11 @@ export default class GitHelper {
         return files;
     }
     
+    /**
+     * Handles errors related to Git operations by logging them to the console.
+     *
+     * @param error - The GitError instance containing details about the error.
+     */
     private handleGitError(error: GitError) {
         console.log(chalk.yellow(error));
     }
@@ -237,10 +306,14 @@ export default class GitHelper {
     // #endregion
     
     // #region Methods for deleting remote and local branches
+
     /**
-     * Performs deletion of both remote and (where applicable) local `branches`
-     * 
-     * @param selectedBranches 
+     * Deletes the specified branches both locally and remotely.
+     *
+     * @param selectedBranches - An array of branch names to be deleted.
+     *                           These branches will be removed from both
+     *                           the local repository and the remote repository.
+     * @returns A promise that resolves when the deletion process is complete.
      */
     public async deleteBranches(selectedBranches: string[]) {
         console.log();
@@ -250,9 +323,18 @@ export default class GitHelper {
     }
 
     /**
-     * Performs deletion of remote branches
-     * 
-     * @param selectedBranches 
+     * Deletes the specified remote branches from the Git repository.
+     *
+     * This method takes an array of branch names, filters them to include only
+     * remote branches, and then iteratively deletes each remote branch using
+     * the Git CLI. If an error occurs during the deletion of a branch, it is
+     * handled by the `handleGitError` method.
+     *
+     * @param selectedBranches - An array of branch names to be deleted. These
+     * should include both local and remote branches; the method will filter
+     * out only the remote branches for deletion.
+     * @returns A promise that resolves when all specified remote branches
+     * have been processed for deletion.
      */
     private async deleteRemoteBranches(selectedBranches: string[]) {
         const remoteBranches = this.getRemoteBranchesSimplified(selectedBranches);
@@ -267,10 +349,11 @@ export default class GitHelper {
     }
 
     /**
-     * Get remote branches from the specified branches, but stripped off the 'origin/' prefix
-     * 
-     * @param branches 
-     * @returns 
+     * Simplifies a list of remote branch names by filtering out branches that do not 
+     * originate from the remote origin and removing the origin prefix from the remaining branches.
+     *
+     * @param branches - An array of branch names to be processed.
+     * @returns An array of simplified branch names with the origin prefix removed.
      */
     private getRemoteBranchesSimplified(branches: string[]) : string[] {
         return branches
@@ -279,9 +362,15 @@ export default class GitHelper {
     }
 
     /**
-     * Performs deletion of local branches (both deleted from remote as well as orphan)
-     * 
-     * @param selectedBranches 
+     * Deletes local Git branches based on the provided selection.
+     *
+     * This method performs the following actions:
+     * 1. Retrieves all local branches using the Git client.
+     * 2. Deletes local branches that match the provided selection.
+     * 3. Deletes orphaned local branches that are not part of the provided selection.
+     *
+     * @param selectedBranches - An array of branch names to be deleted.
+     * @returns A promise that resolves when the operation is complete.
      */
     private async deleteLocalBranches(selectedBranches: string[]) {
         const localBranches = (await this.git.branchLocal()).all;
@@ -291,10 +380,15 @@ export default class GitHelper {
     }
 
     /**
-     * Performs deletion of local branches matching the deleted remote branches
-     * 
-     * @param selectedBranches 
-     * @param localBranches 
+     * Deletes local branches that match the selected remote branches.
+     *
+     * This method identifies the intersection of the provided local branches
+     * and the simplified remote branches derived from the selected branches.
+     * If matching local branches are found, they are deleted.
+     *
+     * @param selectedBranches - An array of branch names selected for processing.
+     * @param localBranches - An array of local branch names to check for matches.
+     * @returns A promise that resolves when the matching local branches are deleted.
      */
     private async deleteMatchingLocalBranches(selectedBranches: string[], localBranches: string[]) {
         const remoteBranches = this.getRemoteBranchesSimplified(selectedBranches);
@@ -314,9 +408,18 @@ export default class GitHelper {
     }
 
     /**
-     * Performs deletion of local orphan branches
-     * 
-     * @param selectedBranches 
+     * Deletes local orphan branches from the repository.
+     *
+     * This method filters the provided list of branches to identify local branches
+     * that are not associated with a remote (i.e., branches that do not start with
+     * the remote origin prefix). If any local orphan branches are found, they are
+     * deleted using the Git client.
+     *
+     * @param selectedBranches - An array of branch names to process. This list may
+     * include both local and remote branches.
+     *
+     * @returns A promise that resolves when the deletion process is complete.
+     * If an error occurs during the deletion, it is handled by the `handleGitError` method.
      */
     private async deleteOrphanLocalBranches(selectedBranches: string[]) {
         const localBranches = selectedBranches.filter(branch => !branch.startsWith(Constants.ORIGIN));

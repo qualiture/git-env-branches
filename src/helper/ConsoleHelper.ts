@@ -19,6 +19,12 @@ export default class ConsoleHelper {
         this.gitHelper = new GitHelper();
     }
 
+    /**
+     * Outputs a summary of feature branches to the console in a tabular format and provides follow-up actions.
+     *
+     * @param featureBranchSummary - An array of `FeatureBranchSummary` objects representing the details of feature branches.
+     * @param environmentBranches - An array of strings representing the names of environment branches.
+     */
     public plotSummaryToConsole(featureBranchSummary: FeatureBranchSummary[], environmentBranches: string[]) {
         const tableData: string[][] = featureBranchSummary.map(item => this.getTableRow(item));
 
@@ -29,10 +35,14 @@ export default class ConsoleHelper {
     }
 
     /**
-     * Converts a `FeatureBranchSummary` object to an ascii-table3-compliant `string[]` array
+     * Generates a table row representation for a given feature branch summary.
+     *
+     * @param featureBranchData - An object containing details about the feature branch,
+     * including its name, whether it is the current branch, files touched, commit information,
+     * and merge status with target environment branches.
      * 
-     * @param featureBranchData 
-     * @returns 
+     * @returns An array of strings representing the table row, where each value is colorized
+     * based on the feature branch data.
      */
     private getTableRow(featureBranchData: FeatureBranchSummary) : string[] {
         let featureBranch = `${featureBranchData.isCurrent ? "* " : ""}${featureBranchData.branch}`;
@@ -50,11 +60,17 @@ export default class ConsoleHelper {
     }
 
     /**
-     * Colors the output based on the supplied `FeatureBranchSummary` boolean flags
-     * 
-     * @param value 
-     * @param data 
-     * @returns 
+     * Returns a colorized string based on the properties of the provided `FeatureBranchSummary` object.
+     * The colorization is determined by the branch's status:
+     * - Grey: If the branch is an environment branch.
+     * - Green: If the branch is fully merged.
+     * - Yellow: If the branch has never been merged.
+     * - Magenta Bright: If the branch exists only locally.
+     * - White Bright and Bold: For all other cases.
+     *
+     * @param value - The string value to be colorized.
+     * @param data - An object of type `FeatureBranchSummary` containing branch status information.
+     * @returns The colorized string based on the branch's status.
      */
     private getColorizedValue(value: string, data: FeatureBranchSummary) : string {
         if (data.isEnvironmentBranch) {
@@ -71,9 +87,25 @@ export default class ConsoleHelper {
     }
 
     /**
-     * After the table has been printed, this method plots additional output and/or questions to the console
-     * 
-     * @param featureBranchData 
+     * Analyzes and categorizes feature branch data, providing feedback on their statuses
+     * and optionally performing cleanup operations based on the specified options.
+     *
+     * @param featureBranchData - An array of `FeatureBranchSummary` objects representing
+     * the branches to be analyzed.
+     *
+     * The method categorizes branches into the following groups:
+     * - Fully merged branches that are not environment branches.
+     * - Branches that have never been merged.
+     * - Branches that can be merged but are not fully merged, not local-only, and not environment branches.
+     * - Orphan local branches.
+     *
+     * Depending on the `cleanup` option, the method may:
+     * - Log the number of branches in each category and their statuses.
+     * - Warn if the current branch is eligible for deletion but is checked out.
+     * - Perform cleanup operations to remove eligible branches.
+     * - Suggest a command to interactively remove branches if cleanup is not enabled.
+     *
+     * If no branches require action, a message indicating no housekeeping is necessary is logged.
      */
     private plotFollowUp(featureBranchData: FeatureBranchSummary[]) {
         const fullyMergedBranches = featureBranchData.filter(branch => branch.isFullyMerged && !branch.isEnvironmentBranch);
@@ -144,6 +176,23 @@ export default class ConsoleHelper {
         }
     }
 
+    /**
+     * Handles the cleanup process for feature branches by prompting the user for confirmation
+     * and branch selection, and then deleting the selected branches if confirmed.
+     *
+     * @param branchesToClean - An array of `FeatureBranchSummary` objects representing the branches
+     *                          that are eligible for cleanup.
+     * @param cleanup - A string indicating the cleanup mode. If set to "ALL", all branches are considered;
+     *                  otherwise, only fully merged branches and/or local orphan branches are considered.
+     *
+     * The method displays a caution message to the user, warning them to verify the branches before deletion.
+     * It then prompts the user with a series of questions:
+     * 1. Whether they want to delete branches.
+     * 2. If yes, a multiselect prompt to choose specific branches to delete.
+     * 3. A final confirmation prompt to ensure the user wants to delete the selected branches.
+     *
+     * If the user confirms the deletion, the selected branches are deleted using the `gitHelper.deleteBranches` method.
+     */
     private async doCleanup(branchesToClean: FeatureBranchSummary[], cleanup: string) {
         const caution = new AsciiTable3()
             .setStyle("unicode-round")
@@ -186,10 +235,12 @@ export default class ConsoleHelper {
     }
 
     /**
-     * Plots the feature branches and merge state into a colored ASCII table
-     * 
-     * @param environmentBranches 
-     * @param rowArrays 
+     * Outputs a tabular representation of the provided feature branch data to the console.
+     *
+     * @param environmentBranches - An array of strings representing the names of environment branches.
+     * @param rowArrays - An array of arrays containing the data for each row in the
+     * table, where each inner array represents a row and contains the branch name,
+     * number of files touched, last commit information, and merge status with environment branches.
      */
     private plotTable(environmentBranches: string[], rowArrays: string[][]) {
         const table = new AsciiTable3("Merged / unmerged branches")

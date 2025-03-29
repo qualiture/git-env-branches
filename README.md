@@ -31,8 +31,9 @@ This NPM package is aimed at development teams who employ the so-called [environ
 
 The basics of this strategy is that each target environment (DEV, ACC and PROD) have its own branch, and features/bugfixes/etc are merged independently from each other into these "environment branches", from which they will be deployed to their respective environments:
 
-![Merging into environment branches](./env-branching.png)
-*Feature branches A and B, merged independently into the environment branches DEV, ACC and master. Image was drawn on a reMarkable.*
+| ![Merging into environment branches](./env-branching.png) |
+|----|
+| *Feature branches A and B, merged independently into the environment branches DEV, ACC and master. Image was drawn on a reMarkable.* |
 
 When you have a small team and few longer-than-a-day running feature branches, it is somewhat manageable to have an understanding of what features have been merged to which environment. 
 
@@ -45,17 +46,32 @@ To mitigate that uncertainty, this small NPM package called `git-env-branches` w
 <!-- HOW IT WORKS -->
 ## How it works
 
-Lets imagine you have a repository with three environment branches `DEV`, `ACC` and `master`.
+Lets imagine a repository with three environment branches `DEV`, `ACC` and `master`.
+
+In the root of that repository, the following command was executed:
+
+```bash
+$ geb -b DEV ACC master
+```
+
+This results in the following output:
+
+| ![Terminal output](./terminal.png) |
+|----|
+| *Displays all the repository's branches, and whether they have been merged in the `DEV`, `ACC` and `master` environment branches.* |
 
 When the CLI is executed with the three environment branches as parameters, it then outputs for every (feature) branch for that repo the last commit date, by whom, and in which environment branch these feature branches have been committed.
 
- * <b style="color: grey">Dark grey</b> indicates an environment branch as specified in the parameters and can thus be ignored.
- * <b>Bold white</b> indicates branches which have not yet been fully merged.
- * <b style="color: green">Green</b> indicates branches which have been fully merged throughout the specified environment branches and could be removed.
- * <b style="color: yellow">Yellow</b> indicates remote branches which have not yet been merged. This may indicate either just created branches, or stale branches (to try something out, or for no longer valid fixes, etc)
- * <b style="color: purple">Purple</b> indicates local branches only, i.e., no corresponding remote branch exists. This could indicate that a remote branch has been deleted, but the local counterpart hasn't, and could also be removed.
+ * $\color{grey}{\textsf{\textbf{Dark grey}}}$ indicates an environment branch as specified in the parameters and can thus be ignored.
+ * $\textsf{\textbf{Bold white}}$ indicates branches which have not yet been fully merged in all specified environment branches.
+ * $\color{green}{\textsf{\textbf{Green}}}$ indicates branches which have been fully merged throughout the specified environment branches and could be removed.
+ * $\color{yellow}{\textsf{\textbf{Yellow}}}$ indicates remote branches which have not yet been merged. This may indicate either just created branches, or stale branches (to try something out, or for no longer valid fixes, etc)
+ * $\color{purple}{\textsf{\textbf{Purple}}}$ indicates local branches only, i.e., no corresponding remote branch exists. This could indicate that a remote branch has been deleted, but the local counterpart hasn't, and could also be removed.
 
-As you can tell from the above, having these insights is a tremendous productivity boost. 
+As you can tell from the above, the branches in $\textsf{\textbf{bold white}}$ are the most important ones, since these branches haven't been merged to all specified environments. 
+
+$\color{yellow}{\textsf{\textbf{Important:}}}$ *This NPM package assumes (!) your terminal has a dark background. If you run a light-colored or, worse, a white terminal background color, you may not be able to properly read the bold white text.*  
+*As there seems no way of detecting the active terminal background color, I haven't found a viable solution to this problem, other than advising to run the terminal with a dark background...*
 
 <!-- GETTING STARTED -->
 ## Getting started
@@ -119,9 +135,9 @@ Adding the -c or --cleanup flag gives you the option to interactively delete the
 |---|---|
 | `-c ALL` or `--cleanup ALL` | `geb -b <BRANCH1> <BRANCH2> <etc...> -c ALL` |
 
-<b style="color: red">**USE THIS FLAG WITH CAUTION!**</b>
+$\color{red}{\textsf{\textbf{USE THIS FLAG WITH CAUTION!}}}$
 
-Adding the **-c ALL** or **--cleanup ALL** flag gives you the option to interactively delete *any* branch interactively.  <b style="color: red">_Be very careful when using this option!!_</b>
+Adding the **-c ALL** or **--cleanup ALL** flag gives you the option to interactively delete *any* branch interactively.
 
 
 

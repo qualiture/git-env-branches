@@ -15,6 +15,18 @@ export default class GitEnvironmentBranches {
         this.gitHelper = new GitHelper();
     }
 
+    /**
+     * Executes a series of checks to validate the current Git repository and process environment branches.
+     * 
+     * This method performs the following steps:
+     * 1. Verifies if the current working directory is a valid Git repository.
+     * 2. Retrieves branch options and fetches corresponding remote environment branches.
+     * 3. If valid environment branches are found, generates a branch summary and displays it in the console.
+     * 4. Logs appropriate messages if no valid branches are found or if the directory is not a Git repository.
+     * 
+     * @async
+     * @returns {Promise<void>} Resolves when the check execution is complete.
+     */
     public async executeCheck() {
         const isValidRepository = await this.gitHelper.isValidRepository();
 
@@ -39,6 +51,12 @@ export default class GitEnvironmentBranches {
         }
     }
 
+    /**
+     * Retrieves the list of branches from the provided options.
+     * 
+     * @returns {string[] | null} An array of branch names if specified in the options; 
+     * otherwise, logs a warning message and returns `null`.
+     */
     private getBranchesFromOptions() {
         if (Array.isArray(this.options.branches)) {
             return this.options.branches as string[];

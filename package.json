@@ -1,6 +1,6 @@
 {
   "name": "git-env-branches",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Provides visual overview of the current, real-time (environment) branch merge state of the current repository",
   "main": "dist/index.js",
   "bin": {
@@ -9,20 +9,24 @@
 	},
   "scripts": {
     "build": "tsc",
-    "local:install": "npm ci && npm run build && npm pack && npm i -g git-env-branches-0.1.0.tgz && rm git-env-branches-0.1.0.tgz && echo '\nGo to a local repo, and run \"git-env-branches -h\" for options'"
+    "local:install": "npm ci && npm run build && npm pack && npm i -g git-env-branches-1.0.0.tgz && rm git-env-branches-1.0.0.tgz && echo '\nGo to a local repo, and run \"git-env-branches -h\" for options'"
   },
   "author": "Robin van het Hof",
   "license": "MIT",
   "keywords": [
     "git",
-    "environment-branches"
+    "github",
+    "bitbucket",
+    "gitlab",
+    "source control",
+    "branches"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/qualiture/git-env-branches.git"
   },
   "devDependencies": {
-    "@types/node": "^22.13.10",
+    "@types/node": "^22.13.14",
     "@types/prompts": "^2.4.9",
     "prettier": "^3.5.3",
     "prettier-plugin-organize-imports": "^4.1.0",
