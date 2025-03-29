@@ -9,6 +9,8 @@
 
 An NPM command-line interface for tracking merges of your Git environment and feature branches.
 
+![Terminal output](./terminal-small.png)
+
 <!-- TABLE OF CONTENTS -->
 ## Table of Contents
 
@@ -54,7 +56,7 @@ In the root of that repository, the following command was executed:
 $ geb -b DEV ACC master
 ```
 
-This results in the following output:
+This results in output similar to this :
 
 | ![Terminal output](./terminal.png) |
 |----|

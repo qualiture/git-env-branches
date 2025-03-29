@@ -1,6 +1,6 @@
 {
   "name": "git-env-branches",
-  "version": "0.1.3",
+  "version": "1.0.0",
   "description": "Provides visual overview of the current, real-time (environment) branch merge state of the current repository",
   "main": "dist/index.js",
   "bin": {
