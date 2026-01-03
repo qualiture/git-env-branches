@@ -1,6 +1,6 @@
 {
   "name": "git-env-branches",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Provides visual overview of the current, real-time (environment) branch merge state of the current repository",
   "main": "dist/index.js",
   "bin": {
@@ -9,6 +9,7 @@
 	},
   "scripts": {
     "build": "tsc",
+    "test": "echo \"Warning: no test specified\" && exit 0",
     "local:install": "npm ci && npm run build && npm pack && npm i -g git-env-branches-1.0.0.tgz && rm git-env-branches-1.0.0.tgz && echo '\nGo to a local repo, and run \"git-env-branches -h\" for options'"
   },
   "author": "Robin van het Hof",
@@ -26,19 +27,19 @@
     "url": "git+https://github.com/qualiture/git-env-branches.git"
   },
   "devDependencies": {
-    "@types/node": "^22.13.14",
+    "@types/node": "^25.0.3",
     "@types/prompts": "^2.4.9",
-    "prettier": "^3.5.3",
-    "prettier-plugin-organize-imports": "^4.1.0",
+    "prettier": "^3.7.4",
+    "prettier-plugin-organize-imports": "^4.3.0",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.8.2"
+    "typescript": "^5.9.3"
   },
   "dependencies": {
-    "ascii-table3": "^0.9.0",
+    "ascii-table3": "^1.0.1",
     "chalk": "^4.1.2",
-    "commander": "^13.1.0",
+    "commander": "^14.0.2",
     "prompts": "^2.4.2",
-    "simple-git": "^3.27.0"
+    "simple-git": "^3.30.0"
   }
 }
