@@ -7,6 +7,8 @@ import prompts, { PromptObject } from "prompts";
 
 export default class ConsoleHelper {
 
+    private static readonly ellipsis = "...";
+    private static readonly ansiEscapeCodePattern = /\u001b\[[0-9;]*m/g;
     private static readonly maxHeaderBranchLength = 16;
     private static readonly minFeatureBranchLength = 5;
 
@@ -285,22 +287,22 @@ export default class ConsoleHelper {
             return value;
         }
 
-        if (maxLength <= 3) {
-            return "...".slice(0, maxLength);
+        if (maxLength <= ConsoleHelper.ellipsis.length) {
+            return ConsoleHelper.ellipsis.slice(0, maxLength);
         }
 
-        const contentLength = maxLength - 3;
+        const contentLength = maxLength - ConsoleHelper.ellipsis.length;
         const leftLength = Math.ceil(contentLength / 2);
         const rightLength = Math.floor(contentLength / 2);
 
-        return `${value.slice(0, leftLength)}...${value.slice(value.length - rightLength)}`;
+        return `${value.slice(0, leftLength)}${ConsoleHelper.ellipsis}${value.slice(value.length - rightLength)}`;
     }
 
     private getLongestOutputLineLength(output: string): number {
         return output
             .split("\n")
             .reduce((longest, line) => {
-                const visibleLine = line.replace(/\u001b\[[0-9;]*m/g, "");
+                const visibleLine = line.replace(ConsoleHelper.ansiEscapeCodePattern, "");
                 return Math.max(longest, visibleLine.length);
             }, 0);
     }
