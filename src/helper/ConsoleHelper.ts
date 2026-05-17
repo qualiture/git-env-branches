@@ -7,6 +7,12 @@ import prompts, { PromptObject } from "prompts";
 
 export default class ConsoleHelper {
 
+    private static readonly ellipsis = "...";
+    private static readonly ansiEscapeCodePattern = /\u001b\[[0-9;]*m/g;
+    private static readonly maxHeaderBranchLength = 16;
+    private static readonly minFeatureBranchLength = 6;
+    private static readonly minBranchNameLength = 1;
+
     protected options: OptionValues;
     protected packageName: string;
 
@@ -26,11 +32,38 @@ export default class ConsoleHelper {
      * @param environmentBranches - An array of strings representing the names of environment branches.
      */
     public plotSummaryToConsole(featureBranchSummary: FeatureBranchSummary[], environmentBranches: string[]) {
-        const tableData: string[][] = featureBranchSummary.map(item => this.getTableRow(item));
+        const formattedEnvironmentBranches = environmentBranches.map(branch => this.shortenWithMiddleEllipsis(branch, ConsoleHelper.maxHeaderBranchLength));
+        const terminalWidth = process.stdout.columns;
 
-        this.plotTable(environmentBranches, tableData);
+        const longestFeatureBranch = featureBranchSummary.reduce((longest, item) => {
+            const branchName = `${item.isCurrent ? "* " : ""}${item.branch}`;
+            return Math.max(longest, branchName.length);
+        }, "Feature branch".length);
+
+        let featureBranchWidth = longestFeatureBranch;
+        let tableOutput = "";
+
+        if (terminalWidth === undefined) {
+            const tableData: string[][] = featureBranchSummary.map(item => this.getTableRow(item, featureBranchWidth));
+            tableOutput = this.getTableOutput(formattedEnvironmentBranches, tableData);
+        } else {
+            do {
+                const tableData: string[][] = featureBranchSummary.map(item => this.getTableRow(item, featureBranchWidth));
+
+                tableOutput = this.getTableOutput(formattedEnvironmentBranches, tableData);
+
+                if (this.getLongestOutputLineLength(tableOutput) <= terminalWidth) {
+                    break;
+                }
+
+                featureBranchWidth--;
+            } while (featureBranchWidth >= ConsoleHelper.minFeatureBranchLength);
+        }
 
         // current branch can never be deleted, hence the filter
+        console.log();
+        console.log(tableOutput);
+
         this.plotFollowUp(featureBranchSummary);
     }
 
@@ -44,8 +77,11 @@ export default class ConsoleHelper {
      * @returns An array of strings representing the table row, where each value is colorized
      * based on the feature branch data.
      */
-    private getTableRow(featureBranchData: FeatureBranchSummary) : string[] {
-        let featureBranch = `${featureBranchData.isCurrent ? "* " : ""}${featureBranchData.branch}`;
+    private getTableRow(featureBranchData: FeatureBranchSummary, maxFeatureBranchLength: number) : string[] {
+        const featureBranchPrefix = featureBranchData.isCurrent ? "* " : "";
+        const availableBranchLength = Math.max(maxFeatureBranchLength - featureBranchPrefix.length, ConsoleHelper.minBranchNameLength);
+        const shortenedBranchName = this.shortenWithMiddleEllipsis(featureBranchData.branch, availableBranchLength);
+        const featureBranch = `${featureBranchPrefix}${shortenedBranchName}`;
         let environmentBranchesMergeInfo = Object.values(featureBranchData.target).map(isMerged => isMerged ? "X" : "");
 
         const rowArray: string[] = [
@@ -242,15 +278,39 @@ export default class ConsoleHelper {
      * table, where each inner array represents a row and contains the branch name,
      * number of files touched, last commit information, and merge status with environment branches.
      */
-    private plotTable(environmentBranches: string[], rowArrays: string[][]) {
+    private getTableOutput(environmentBranches: string[], rowArrays: string[][]): string {
         const table = new AsciiTable3("Merged / unmerged branches")
             .setHeading("Feature branch", "# files", "Last commit", "By", ...environmentBranches)
             .setStyle("unicode-round")
             .setAlignRight(2)
             .addRowMatrix(rowArrays);
 
-        console.log();
-        console.log(table.toString());
+        return table.toString();
+    }
+
+    private shortenWithMiddleEllipsis(value: string, maxLength: number): string {
+        if (value.length <= maxLength) {
+            return value;
+        }
+
+        if (maxLength <= ConsoleHelper.ellipsis.length) {
+            return ConsoleHelper.ellipsis.slice(0, maxLength);
+        }
+
+        const contentLength = maxLength - ConsoleHelper.ellipsis.length;
+        const leftLength = Math.ceil(contentLength / 2);
+        const rightLength = Math.floor(contentLength / 2);
+
+        return `${value.slice(0, leftLength)}${ConsoleHelper.ellipsis}${value.slice(value.length - rightLength)}`;
+    }
+
+    private getLongestOutputLineLength(output: string): number {
+        return output
+            .split("\n")
+            .reduce((longest, line) => {
+                const visibleLine = line.replace(ConsoleHelper.ansiEscapeCodePattern, "");
+                return Math.max(longest, visibleLine.length);
+            }, 0);
     }
 
 }
