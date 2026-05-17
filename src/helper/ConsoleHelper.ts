@@ -10,7 +10,7 @@ export default class ConsoleHelper {
     private static readonly ellipsis = "...";
     private static readonly ansiEscapeCodePattern = /\u001b\[[0-9;]*m/g;
     private static readonly maxHeaderBranchLength = 16;
-    private static readonly minFeatureBranchLength = 5;
+    private static readonly minFeatureBranchLength = 6;
 
     protected options: OptionValues;
     protected packageName: string;
