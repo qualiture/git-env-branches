@@ -43,17 +43,22 @@ export default class ConsoleHelper {
         let featureBranchWidth = longestFeatureBranch;
         let tableOutput = "";
 
-        do {
+        if (!terminalWidth) {
             const tableData: string[][] = featureBranchSummary.map(item => this.getTableRow(item, featureBranchWidth));
-
             tableOutput = this.getTableOutput(formattedEnvironmentBranches, tableData);
+        } else {
+            do {
+                const tableData: string[][] = featureBranchSummary.map(item => this.getTableRow(item, featureBranchWidth));
 
-            if (!terminalWidth || this.getLongestOutputLineLength(tableOutput) <= terminalWidth) {
-                break;
-            }
+                tableOutput = this.getTableOutput(formattedEnvironmentBranches, tableData);
 
-            featureBranchWidth--;
-        } while (featureBranchWidth >= ConsoleHelper.minFeatureBranchLength);
+                if (this.getLongestOutputLineLength(tableOutput) <= terminalWidth) {
+                    break;
+                }
+
+                featureBranchWidth--;
+            } while (featureBranchWidth >= ConsoleHelper.minFeatureBranchLength);
+        }
 
         // current branch can never be deleted, hence the filter
         console.log();
