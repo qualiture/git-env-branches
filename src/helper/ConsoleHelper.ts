@@ -11,6 +11,7 @@ export default class ConsoleHelper {
     private static readonly ansiEscapeCodePattern = /\u001b\[[0-9;]*m/g;
     private static readonly maxHeaderBranchLength = 16;
     private static readonly minFeatureBranchLength = 6;
+    private static readonly minBranchNameLength = 1;
 
     protected options: OptionValues;
     protected packageName: string;
@@ -73,7 +74,7 @@ export default class ConsoleHelper {
      */
     private getTableRow(featureBranchData: FeatureBranchSummary, maxFeatureBranchLength: number) : string[] {
         const featureBranchPrefix = featureBranchData.isCurrent ? "* " : "";
-        const availableBranchLength = Math.max(maxFeatureBranchLength - featureBranchPrefix.length, 1);
+        const availableBranchLength = Math.max(maxFeatureBranchLength - featureBranchPrefix.length, ConsoleHelper.minBranchNameLength);
         const shortenedBranchName = this.shortenWithMiddleEllipsis(featureBranchData.branch, availableBranchLength);
         const featureBranch = `${featureBranchPrefix}${shortenedBranchName}`;
         let environmentBranchesMergeInfo = Object.values(featureBranchData.target).map(isMerged => isMerged ? "X" : "");
