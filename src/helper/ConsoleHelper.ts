@@ -43,7 +43,7 @@ export default class ConsoleHelper {
         let featureBranchWidth = longestFeatureBranch;
         let tableOutput = "";
 
-        if (!terminalWidth) {
+        if (terminalWidth === undefined) {
             const tableData: string[][] = featureBranchSummary.map(item => this.getTableRow(item, featureBranchWidth));
             tableOutput = this.getTableOutput(formattedEnvironmentBranches, tableData);
         } else {
