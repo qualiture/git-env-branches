@@ -1,5 +1,5 @@
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
-# For more information see: https://docs.github.com/en/actions/publishing-packages/publishing-nodejs-packages
+# This workflow publishes to npm only when the package.json version changes on main.
+# It triggers on package.json changes, then compares the previous and current version values.
 
 name: Publish NPM Package
 
@@ -7,15 +7,46 @@ on:
   push:
     branches:
       - main
-  release:
-    types: [created]
+    paths:
+      - package.json
 
 permissions:
   id-token: write # required for OIDC
   contents: read
   
 jobs:
+  version_check:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.check.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - id: check
+        shell: bash
+        run: |
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.sha }}"
+
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          OLD_VERSION="$(git show "$BEFORE:package.json" | node -pe "JSON.parse(require('fs').readFileSync(0,'utf8')).version")"
+          NEW_VERSION="$(git show "$AFTER:package.json"  | node -pe "JSON.parse(require('fs').readFileSync(0,'utf8')).version")"
+
+          if [ "$OLD_VERSION" != "$NEW_VERSION" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
   publish:
+    needs: version_check
+    if: needs.version_check.outputs.changed == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
